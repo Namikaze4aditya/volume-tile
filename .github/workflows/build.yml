@@ -3,6 +3,9 @@ name: Build Debug APK
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Debug APK
@@ -27,7 +30,14 @@ jobs:
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v7
+        continue-on-error: true
         with:
           name: app-debug
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+
+      - name: Publish Release APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v1.0.0-$(date +'%Y%m%d%H%M%S')"
+          gh release create "$TAG" app/build/outputs/apk/debug/*.apk --title "Volume Tile $TAG" --notes "Debug APK build"
