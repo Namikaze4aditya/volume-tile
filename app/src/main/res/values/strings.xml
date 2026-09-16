@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Volume Tile</string>
+    <string name="tile_name">Volume</string>
+    <string name="volume_muted">Muted</string>
+    <string name="instruction_title">How to Add Quick Settings Tile</string>
+    <string name="instruction_step_1">1. Swipe down twice from the top of your screen to fully open Quick Settings.</string>
+    <string name="instruction_step_2">2. Tap the pencil or Edit icon (or three dots → Edit buttons).</string>
+    <string name="instruction_step_3">3. Find the "Volume" tile in available tiles and drag it into your active tiles.</string>
+    <string name="test_button_text">Test Volume Panel</string>
+    <string name="done_button_text">Done</string>
+    <string name="battery_notice_title">OEM Battery Optimization Notice</string>
+    <string name="battery_notice_body">On ColorOS, Realme UI, and similar devices, manually exclude this app from battery optimization in Settings → Battery → App battery management → Allow background activity so the system does not kill the tile service.</string>
+</resources>
