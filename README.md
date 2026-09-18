@@ -1,38 +1,81 @@
-# Volume Tile
+# 🔊 Volume Tile
 
-A minimal, single-purpose Android app written in Kotlin that adds a custom Quick Settings (QS) tile. When tapped, it invokes Android's own native system volume panel overlay — the exact same overlay that appears when pressing physical hardware volume buttons.
+[![Release](https://img.shields.io/github/v/release/Namikaze4aditya/volume-tile?style=for-the-badge&color=2196F3)](https://github.com/Namikaze4aditya/volume-tile/releases/latest)
+[![Android](https://img.shields.io/badge/Android-8.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![Zero Permissions](https://img.shields.io/badge/Permissions-Zero-success?style=for-the-badge)](app/src/main/AndroidManifest.xml)
+[![Size](https://img.shields.io/badge/APK%20Size-~780_KB-informational?style=for-the-badge)](https://github.com/Namikaze4aditya/volume-tile/releases/latest)
 
-## Key Features
+A minimalist, single-purpose Android utility in Kotlin that adds a custom **Quick Settings tile** to invoke Android's **native system volume panel overlay** — the exact same overlay that appears when pressing physical hardware volume keys.
 
-- **Native System Volume Panel**: Uses `AudioManager.adjustSuggestedStreamVolume(AudioManager.ADJUST_SAME, AudioManager.USE_DEFAULT_STREAM_TYPE, AudioManager.FLAG_SHOW_UI)`.
-- **Dynamic Context Switching**: By passing `USE_DEFAULT_STREAM_TYPE` instead of a hardcoded stream (e.g. `STREAM_MUSIC`), Android automatically controls the appropriate stream based on active state (call, media, ring, alarm).
-- **Dynamic Tile State & Subtitle**: Queries volume level and mute state in `onStartListening()` to display the current volume percentage (or "Muted") and toggles active/inactive tile states.
-- **Zero Background Footprint**: A broadcast receiver for volume changes is registered only when the tile is visible (`onStartListening()`) and unregistered immediately when closed (`onStopListening()`). No background services, no polling, no alarms.
-- **Zero Third-Party Dependencies**: No AndroidX, no Jetpack Compose, no Material Components. Uses purely native Android framework APIs (`android.jar`).
-- **Zero Permissions**: No `INTERNET` permission, completely offline, privacy-friendly.
+Great for:
+- 📱 Devices with **broken, worn out, or sticky volume buttons**
+- 📖 **Large phones, foldables, and tablets** where reaching volume buttons is awkward
+- 🔇 Instant one-tap access to volume sliders directly from the notification shade
 
-## ColorOS / Realme UI / Aggressive Battery Optimization Note
+---
 
-> **Important**: On ColorOS, Realme UI, OxygenOS, and certain other OEM Android skins, aggressive background killing may prevent the Android system from properly binding to third-party Quick Settings tiles.
->
-> If the tile does not appear or becomes unresponsive, manually exclude this app from battery optimization:
-> **Settings → Battery → App battery management (or More settings) → Volume Tile → Enable "Allow background activity" / Set to "Don't optimize"**.
->
-> Android does not allow apps to set this programmatically.
+## ✨ Features
 
-## Headless Mode (No Launcher Activity)
+- **Native System Volume UI**: Invokes Android's built-in volume slider via `AudioManager.adjustSuggestedStreamVolume(ADJUST_SAME, USE_DEFAULT_STREAM_TYPE, FLAG_SHOW_UI)`. No clunky custom volume dialogs.
+- **Dynamic Context Switching**: Uses `USE_DEFAULT_STREAM_TYPE` so it context-switches dynamically between Media, Voice Call, Ring, and Alarm just like physical hardware keys.
+- **Live Tile Indicator**: Dynamic subtitle shows current volume percentage (`%`) or `Muted`, and switches icons (`ic_volume_up` / `ic_volume_off`).
+- **Zero Background Footprint**: Volume broadcast receiver is registered **only** while the Quick Settings shade is open (`onStartListening()`) and unregistered the millisecond it closes (`onStopListening()`).
+- **Zero Running Services**: No background service, no foreground notification, no JobScheduler, no WorkManager, no alarms, no battery drain.
+- **Zero Permissions**: No `INTERNET` permission, zero network calls, fully offline, no telemetry, no ads.
+- **Ultra Lightweight**: Under ~800 KB APK. Zero AndroidX and zero third-party dependencies.
 
-If you prefer a completely headless app without any launcher icon in your app drawer:
-1. Open `app/src/main/AndroidManifest.xml`.
-2. Remove the `<activity android:name=".MainActivity" ...>...</activity>` element.
-3. Rebuild the app.
+---
 
-## Building on GitHub Actions
+## 📥 Download & Install
 
-This repository includes a ready-to-run GitHub Actions workflow (`.github/workflows/build.yml`).
+Download the latest APK directly from GitHub Releases:
 
-1. Push this repository to GitHub.
-2. Go to the **Actions** tab in your repository.
-3. Select the **Build Debug APK** workflow.
-4. Click **Run workflow** (`workflow_dispatch`).
-5. Once the build finishes, download the generated debug APK from the workflow summary under **Artifacts** (`app-debug`).
+👉 **[Download Latest APK (`app-debug.apk`)](https://github.com/Namikaze4aditya/volume-tile/releases/latest)**
+
+Or install via ADB:
+```bash
+adb install -r app-debug.apk
+```
+
+---
+
+## 🚀 How to Add the Quick Settings Tile
+
+1. Swipe down twice from the top of your screen to open the full Quick Settings panel.
+2. Tap the **Pencil / Edit** icon (or three dots `⋮` → **Edit tiles**).
+3. Scroll down to find **Volume** under available tiles.
+4. Drag **Volume** up into your active tiles.
+5. Tap the tile anytime to adjust volume!
+
+---
+
+## ⚠️ OEM Battery Management Note (ColorOS / Realme UI / OxygenOS / MIUI)
+
+On aggressive OEM skins (ColorOS, Realme UI, OxygenOS, HyperOS/MIUI), background cleaners may unbind Quick Settings tiles after long sleep periods.
+
+If the tile ever stops responding, exclude the app from battery optimization:
+> **Settings → Battery → App battery management → Volume Tile → Allow background activity / Don't optimize**.
+
+*(Note: Android security policy does not allow apps to set this programmatically).*
+
+---
+
+## 🛠️ Build from Source
+
+This project builds automatically on **GitHub Actions** with Java 17 and Gradle 8.7.
+
+To build locally (requires Android SDK & Java 17+):
+```bash
+git clone https://github.com/Namikaze4aditya/volume-tile.git
+cd volume-tile
+./gradlew assembleDebug
+```
+The resulting APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
+
+---
+
+## 📄 License
+
+Released under the [MIT License](LICENSE).
+

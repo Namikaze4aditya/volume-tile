@@ -46,27 +46,35 @@ class VolumeTileService : TileService() {
 
     override fun onClick() {
         super.onClick()
-        val am = applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        am.adjustSuggestedStreamVolume(
-            AudioManager.ADJUST_SAME,
-            AudioManager.USE_DEFAULT_STREAM_TYPE,
-            AudioManager.FLAG_SHOW_UI
-        )
+        try {
+            val am = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+            am.adjustSuggestedStreamVolume(
+                AudioManager.ADJUST_SAME,
+                AudioManager.USE_DEFAULT_STREAM_TYPE,
+                AudioManager.FLAG_SHOW_UI
+            )
+        } catch (_: Exception) {
+            // Failsafe catch to ensure tile interaction never crashes on modified OEM ROMs
+        }
     }
 
     override fun onStartListening() {
         super.onStartListening()
         updateTileState()
         if (!isReceiverRegistered) {
-            val filter = IntentFilter(VOLUME_CHANGED_ACTION).apply {
-                addAction(AudioManager.RINGER_MODE_CHANGED_ACTION)
+            try {
+                val filter = IntentFilter(VOLUME_CHANGED_ACTION).apply {
+                    addAction(AudioManager.RINGER_MODE_CHANGED_ACTION)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    registerReceiver(volumeReceiver, filter, Context.RECEIVER_EXPORTED)
+                } else {
+                    registerReceiver(volumeReceiver, filter)
+                }
+                isReceiverRegistered = true
+            } catch (_: Exception) {
+                // Failsafe catch for broadcast receiver registration
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(volumeReceiver, filter, Context.RECEIVER_EXPORTED)
-            } else {
-                registerReceiver(volumeReceiver, filter)
-            }
-            isReceiverRegistered = true
         }
     }
 
@@ -86,6 +94,8 @@ class VolumeTileService : TileService() {
                 unregisterReceiver(volumeReceiver)
             } catch (_: IllegalArgumentException) {
                 // Receiver was already unregistered
+            } catch (_: Exception) {
+                // Failsafe catch
             }
             isReceiverRegistered = false
         }
@@ -93,40 +103,44 @@ class VolumeTileService : TileService() {
 
     private fun updateTileState() {
         val tile = qsTile ?: return
-        val am = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        try {
+            val am = applicationContext.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
 
-        // Context-aware stream detection: voice call if in a call/communication, otherwise media stream
-        val streamType = if (am.mode == AudioManager.MODE_IN_CALL || am.mode == AudioManager.MODE_IN_COMMUNICATION) {
-            AudioManager.STREAM_VOICE_CALL
-        } else {
-            AudioManager.STREAM_MUSIC
-        }
-
-        val currentVolume = am.getStreamVolume(streamType)
-        val maxVolume = am.getStreamMaxVolume(streamType)
-        val isMuted = am.isStreamMute(streamType) || currentVolume == 0
-
-        val volumePercent = if (maxVolume > 0) {
-            (currentVolume * 100) / maxVolume
-        } else {
-            0
-        }
-
-        tile.state = if (isMuted) Tile.STATE_INACTIVE else Tile.STATE_ACTIVE
-        tile.icon = Icon.createWithResource(
-            this,
-            if (isMuted) R.drawable.ic_volume_off else R.drawable.ic_volume_up
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            tile.subtitle = if (isMuted) {
-                getString(R.string.volume_muted)
+            // Context-aware stream detection: voice call if in a call/communication, otherwise media stream
+            val streamType = if (am.mode == AudioManager.MODE_IN_CALL || am.mode == AudioManager.MODE_IN_COMMUNICATION) {
+                AudioManager.STREAM_VOICE_CALL
             } else {
-                "$volumePercent%"
+                AudioManager.STREAM_MUSIC
             }
-        }
 
-        tile.updateTile()
+            val currentVolume = am.getStreamVolume(streamType)
+            val maxVolume = am.getStreamMaxVolume(streamType)
+            val isMuted = am.isStreamMute(streamType) || currentVolume == 0
+
+            val volumePercent = if (maxVolume > 0) {
+                (currentVolume * 100) / maxVolume
+            } else {
+                0
+            }
+
+            tile.state = if (isMuted) Tile.STATE_INACTIVE else Tile.STATE_ACTIVE
+            tile.icon = Icon.createWithResource(
+                this,
+                if (isMuted) R.drawable.ic_volume_off else R.drawable.ic_volume_up
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                tile.subtitle = if (isMuted) {
+                    getString(R.string.volume_muted)
+                } else {
+                    "$volumePercent%"
+                }
+            }
+
+            tile.updateTile()
+        } catch (_: Exception) {
+            // Failsafe catch: ensures tile updates never crash SystemUI
+        }
     }
 
     companion object {
